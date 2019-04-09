@@ -1,17 +1,26 @@
 package com.example.soundsettingchooser;
 
 import android.Manifest;
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.ContentResolver;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.media.AudioAttributes;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.media.Ringtone;
 import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Build;
+import android.os.FileUriExposedException;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.app.NotificationCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -21,7 +30,7 @@ import android.widget.TextView;
 
 public class MainActivity extends AppCompatActivity {
 
-    Button btnShowDialog, btnPlaySound;
+    Button btnShowDialog, btnPlaySound, btnPlayNotif;
     TextView txvSoundChoose;
     MediaPlayer mMediaPlayer;
     private static int REQUEST_READ_EXTERNAL = 90;
@@ -32,6 +41,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         btnShowDialog = findViewById(R.id.btnShowDialog);
         btnPlaySound = findViewById(R.id.btnPlaySound);
+        btnPlayNotif = findViewById(R.id.btnPlayNotif);
         txvSoundChoose = findViewById(R.id.txvSoundChoose);
         btnShowDialog.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -58,6 +68,13 @@ public class MainActivity extends AppCompatActivity {
                 } catch (NullPointerException e) {
                     e.printStackTrace();
                 }
+            }
+        });
+        btnPlayNotif.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                stopPlaying();
+                showNotif("Hai", "Ini Notif");
             }
         });
         getRecentRingtone();
@@ -129,6 +146,46 @@ public class MainActivity extends AppCompatActivity {
                     new Preferences(this).setIsSetRingtone("");
                     getRecentRingtone();
                 }
+            }
+        }
+    }
+
+    private void showNotif(String title, String body){
+        Intent intent = new Intent(this, MainActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0 /* Request code */, intent,
+                PendingIntent.FLAG_ONE_SHOT);
+        Uri defaultSoundUri = Uri.parse(new Preferences(this).getRingtone());
+        NotificationCompat.Builder notificationBuilder;
+        notificationBuilder = new NotificationCompat.Builder(this)
+                .setSmallIcon(R.mipmap.ic_launcher)
+                .setContentTitle(title)
+                .setContentText(body)
+                .setPriority(1)
+                .setDefaults(Notification.DEFAULT_VIBRATE)
+                .setAutoCancel(true)
+                .setColor(ContextCompat.getColor(this, R.color.colorPrimary))
+                .setContentIntent(pendingIntent);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            AudioAttributes audioAttributes = new AudioAttributes.Builder()
+                    .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                    .setUsage(AudioAttributes.USAGE_NOTIFICATION)
+                    .build();
+            NotificationChannel channel = new NotificationChannel(BuildConfig.APPLICATION_ID+".notif", "Pemberitahuan", NotificationManager.IMPORTANCE_HIGH);
+            channel.setShowBadge(false);
+            channel.setVibrationPattern(new long[]{1000, 1000, 1000, 1000, 1000});
+            channel.setSound(defaultSoundUri, audioAttributes);
+            notificationManager.createNotificationChannel(channel);
+            notificationBuilder.setChannelId(BuildConfig.APPLICATION_ID+".notif");
+        }
+        try {
+            notificationBuilder.setSound(defaultSoundUri);
+            notificationManager.notify(101 /* ID of notification */, notificationBuilder.build());
+        } catch (Exception e) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && e instanceof FileUriExposedException) {
+                notificationBuilder.setSound(null);
+                notificationManager.notify(101 /* ID of notification */, notificationBuilder.build());
             }
         }
     }
