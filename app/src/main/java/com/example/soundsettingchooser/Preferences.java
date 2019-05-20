@@ -25,7 +25,7 @@ public class Preferences {
     private static final String IS_SET_RINGTONE = "isSetRingtone";
 
     public String getRingtone() {
-        Uri sound = RingtoneManager.getActualDefaultRingtoneUri(_context.getApplicationContext(), RingtoneManager.TYPE_ALL);
+        Uri sound = RingtoneManager.getActualDefaultRingtoneUri(_context.getApplicationContext(), RingtoneManager.TYPE_NOTIFICATION);
         return pref.getString(IS_SET_RINGTONE, sound.toString());
     }
 

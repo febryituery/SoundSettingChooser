@@ -108,9 +108,9 @@ public class MainActivity extends AppCompatActivity {
 
     public void showDialogRingtone() {
         Uri defaultSoundUri = Uri.parse(new Preferences(this).getRingtone());
-        Uri sound = RingtoneManager.getActualDefaultRingtoneUri(getApplicationContext(), RingtoneManager.TYPE_ALL);
+        Uri sound = RingtoneManager.getActualDefaultRingtoneUri(getApplicationContext(), RingtoneManager.TYPE_NOTIFICATION);
         Intent intent = new Intent(RingtoneManager.ACTION_RINGTONE_PICKER);
-        intent.putExtra(RingtoneManager.EXTRA_RINGTONE_TYPE, RingtoneManager.TYPE_ALL);
+        intent.putExtra(RingtoneManager.EXTRA_RINGTONE_TYPE, RingtoneManager.TYPE_NOTIFICATION);
         intent.putExtra(RingtoneManager.EXTRA_RINGTONE_TITLE, "Pilih Nada Dering");
         intent.putExtra(RingtoneManager.EXTRA_RINGTONE_DEFAULT_URI, sound);
         intent.putExtra(RingtoneManager.EXTRA_RINGTONE_EXISTING_URI, defaultSoundUri);
@@ -157,6 +157,7 @@ public class MainActivity extends AppCompatActivity {
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0 /* Request code */, intent,
                 PendingIntent.FLAG_ONE_SHOT);
         Uri defaultSoundUri = Uri.parse(new Preferences(this).getRingtone());
+        Log.e("SOUND",defaultSoundUri.toString());
         NotificationCompat.Builder notificationBuilder;
         notificationBuilder = new NotificationCompat.Builder(this)
                 .setSmallIcon(R.mipmap.ic_launcher)
